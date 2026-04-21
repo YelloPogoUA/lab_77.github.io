@@ -9,49 +9,362 @@
 body {
     font-family: 'Inter', sans-serif;
     height: 100vh;
-    display: flex;
-    flex-direction: column;
+    width: 100vw;
+    background-color: #0e1218;
     overflow: hidden;
+    position: relative;
 }
 
 .fullscreen-bg {
-    flex-grow: 1;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ФОН ГЛАВНОЙ СТРАНИЦЫ */
+.fullscreen-bg.main-bg {
+    background-image: linear-gradient(rgba(20, 25, 35, 0.3), rgba(20, 25, 35, 0.5)), url('bg.jpg');
     background-size: cover;
     background-position: center;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
-.fullscreen-bg:not(.microscope-bg) {
-    background-image: linear-gradient(rgba(20, 25, 35, 0.3), rgba(20, 25, 35, 0.5)), url('bg.jpg');
+/* ФОН СТРАНИЦЫ ПРАКТИКИ (просто черный, микроскоп будет в workspace) */
+.fullscreen-bg.practice-bg {
+    background-color: #0e1218;
 }
 
-body .fullscreen-bg.practice-bg {
-    background-image: url('setup.jpg') !important;
-    background-color: transparent !important;
-    background-blend-mode: normal !important;
-    box-shadow: none !important;
-}
-
+/* ОБЩИЙ РАБОЧИЙ ХОЛСТ 1920х1080 */
 .workspace {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.layout-canvas {
-    position: relative;
-    width: 900px;
-    height: 520px;
-    transform: translateY(-20px);
-}
-
-.center-element-wrapper {
     position: absolute;
     top: 50%;
     left: 50%;
+    width: 1920px;
+    height: 1080px;
+    margin-top: -540px; 
+    margin-left: -960px;
+    transform-origin: center center;
+    z-index: 1;
+}
+/* Для главной: прозрачный холст */
+.fullscreen-bg.main-bg .workspace {
+    background: transparent;
+}
+
+/* Для практики: холст - это картинка микроскопа */
+.fullscreen-bg.practice-bg .workspace {
+    background: url('setup.jpg') center/cover no-repeat;
+    /* Убрали тень и скругления, теперь это просто чистая картинка без рамок */
+}
+
+/* --- ОВЕРЛЕИ И ПАНЕЛИ --- */
+.focus-overlay {
+    position: absolute;
+    top: -100%; left: -100%;
+    width: 300%; height: 300%;
+    background: rgba(10, 15, 20, 0.65);
+    backdrop-filter: blur(10px);
+    z-index: 4;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: 0.4s ease;
+}
+
+.focus-overlay.visible {
+    opacity: 1; visibility: visible;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    color: white; z-index: 5;
+}
+
+.fade-panel {
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
+    transform: scale(0.95);
+}
+
+.fade-panel.visible {
+    opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1);
+}
+
+.control-label {
+    font-size: 15px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.5px; color: #ffffff; margin-bottom: 18px; text-align: center;
+}
+
+.text-center { text-align: center; }
+
+.action-btn {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.active {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* --- КНОПКИ МИКРОСКОПА --- */
+.top-buttons-container {
+    position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 24px; z-index: 5;
+}
+.top-buttons-container .action-btn { width: 260px; height: 60px; }
+.back-btn, .hint-btn { position: absolute; top: 60px; width: 60px; height: 60px; padding: 0; z-index: 10; }
+.back-btn { left: 100px; }
+.hint-btn { right: 100px; font-size: 24px; }
+
+/* --- ПАНЕЛИ МИКРОСКОПА --- */
+.floating-panel { position: absolute; width: 360px; padding: 30px; z-index: 5; }
+.panel-lenses { top: 200px; left: 100px; }
+.panel-filters { top: 420px; left: 100px; }
+
+.radio-options { display: flex; gap: 15px; }
+.radio-btn { flex: 1; position: relative; cursor: pointer; }
+.radio-btn input { display: none; }
+.radio-btn span {
+    display: block; text-align: center; padding: 14px 0;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px; font-size: 15px; font-weight: 500; transition: 0.3s;
+}
+.radio-btn input:checked + span {
+    background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.5); box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.filter-options { display: flex; flex-direction: column; gap: 14px; }
+.filter-btn {
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px; padding: 14px 15px 14px 45px;
+    color: #fff; font-family: inherit; font-size: 15px; font-weight: 500;
+    text-align: left; cursor: pointer; transition: 0.3s; position: relative;
+}
+.filter-btn::before {
+    content: ''; position: absolute; left: 18px; top: 50%;
+    transform: translateY(-50%); width: 14px; height: 14px; border-radius: 50%;
+}
+.filter-btn.red::before { background: #ff4d4d; }
+.filter-btn.yellow::before { background: #ffd700; }
+.filter-btn.green::before { background: #00cc44; }
+.filter-btn.blue::before { background: #3385ff; }
+.filter-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.filter-btn.active { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.2); }
+
+.hint-panel { top: 200px; right: 100px; z-index: 10; width: 420px; }
+.hint-img { width: 100%; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 18px; background: #fff; }
+.hint-text p { font-size: 14px; margin-bottom: 14px; color: rgba(255, 255, 255, 0.95); line-height: 1.5; }
+.hint-formula {
+    font-size: 16px; font-weight: 700; text-align: center; padding: 14px;
+    background: rgba(0, 0, 0, 0.25); border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15); color: #ffffff; margin-top: 12px;
+}
+
+.panel-eyepiece { position: absolute; top: 200px; right: 100px; z-index: 5; }
+.eyepiece-container {
+    width: 420px; height: 420px; border-radius: 50%; position: relative; overflow: hidden;
+    background: radial-gradient(circle at center, #181818 0%, #000 100%);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.rings-image { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: 1; transform: scale(0.65); }
+.lens-glass {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.8) 100%);
+    box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95), inset 0 15px 25px rgba(255, 255, 255, 0.2), inset 0 -15px 25px rgba(0, 0, 0, 0.6);
+    z-index: 4; pointer-events: none;
+}
+.eyepiece-frame { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 5; pointer-events: none; }
+
+.ruler-container {
+    position: absolute; top: 50%; left: 10%; width: 80%; height: 1px;
+    background: rgba(255, 255, 255, 0.5); z-index: 2; transform: translateZ(0); 
+}
+.ruler-marks {
+    position: absolute; top: -8px; left: 0; width: 100%; height: 17px;
+    background: repeating-linear-gradient(to right, rgba(255, 255, 255, 1) 0, rgba(255, 255, 255, 1) 1.5px, transparent 1.5px, transparent 10%);
+}
+.ruler-marks::after {
+    content: ''; position: absolute; top: 4px; left: 0; width: 100%; height: 9px;
+    background: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.6) 0, rgba(255, 255, 255, 0.6) 1px, transparent 1px, transparent 1%);
+}
+.crosshair {
+    position: absolute; top: 0; width: 2px; height: 100%;
+    background: rgba(255, 40, 40, 0.95); box-shadow: 0 0 6px rgba(255, 0, 0, 0.5);
+    z-index: 3; transform: translateX(-50%); left: 50%; /* Стартовая позиция */
+}
+
+.panel-micrometer { position: absolute; top: 660px; right: 100px; width: 420px; padding: 24px 30px; z-index: 5; }
+
+/* Кастомный ползунок микрометра */
+.custom-slider {
+    -webkit-appearance: none; width: 100%; height: 6px;
+    background: rgba(255, 255, 255, 0.2); border-radius: 3px; outline: none; margin-top: 10px;
+}
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: #ffffff; cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: 0.2s;
+}
+.custom-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.micrometer-value-container {
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px; padding: 10px; margin-top: 18px;
+}
+.value-input {
+    width: 95px; text-align: right; background: transparent; border: none; outline: none;
+    color: #fff; font-size: 28px; font-weight: 700; letter-spacing: 1px; -moz-appearance: textfield;
+}
+.value-input::-webkit-outer-spin-button, .value-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.unit { color: #fff; font-size: 22px; font-weight: 600; margin-left: 8px; }
+
+/* --- УВЕЛИЧЕННЫЙ ИНТЕРФЕЙС ГЛАВНОГО МЕНЮ --- */
+.layout-canvas {
+    position: absolute; top: 50%; left: 50%; 
+    transform: translate(-50%, -50%); /* Без scale, используем чистые пиксели */
+    width: 1100px; height: 650px;     /* Увеличен размер сетки (было 900х520) */
+}
+
+.center-element-wrapper {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; z-index: 10;
+}
+
+.lab-badge {
+    background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 30px; 
+    padding: 10px 24px;   /* Увеличили */
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 15px;      /* Увеличили */
+    font-weight: 600; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: -25px; /* Увеличили отступ для круга */
+    z-index: 20;
+}
+
+.center-circle {
+    position: relative; 
+    width: 480px;  /* Увеличили (было 380) */
+    height: 480px; 
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+}
+
+.main-title { position: relative; z-index: 5; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.title-top { font-size: 15px; font-weight: 500; color: rgba(255, 255, 255, 0.8); letter-spacing: 5px; text-transform: uppercase; }
+.title-bot {
+    font-size: 56px; font-weight: 800; color: #ffffff; text-transform: uppercase;
+    letter-spacing: 4px; line-height: 1.1; text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.nav-btn {
+    position: absolute; 
+    width: 260px;   /* Увеличили (было 220) */
+    height: 70px;   /* Увеличили (было 60) */
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: #ffffff; font-weight: 600; 
+    border-radius: 35px; /* Увеличили */
+    font-size: 16px;     /* Увеличили */
+    text-transform: uppercase; letter-spacing: 3px; text-decoration: none;
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); transform: scale(1.02);
+}
+.top-left { top: 15%; left: 0; }
+.top-right { top: 15%; right: 0; }
+.bottom-left { bottom: 15%; left: 0; }
+.bottom-right { bottom: 15%; right: 0; }
+
+/* --- ФУТЕР (НАД ВСЕМ ЭТИМ МАСШТАБИРОВАНИЕМ) --- */
+/* --- ФУТЕР (ТЕПЕРЬ ВНУТРИ МАСШТАБА 1920x1080) --- */
+.site-footer {
+    background: rgba(25, 30, 35, 0.4); backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1); 
+    position: absolute; bottom: 0; left: 0;
+    width: 100%; /* Было 100vw, теперь 100% от холста */
+    height: 80px; /* Увеличили высоту для 1080p */
+    padding: 0 40px; display: flex;
+    justify-content: space-between; align-items: center; z-index: 20;
+}
+.footer-left { display: flex; align-items: center; width: 250px; }
+.footer-logo { height: 50px; width: auto; opacity: 0.9; }
+.footer-center {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.8); 
+    font-size: 16px; /* Увеличили шрифт */
+    font-weight: 400; text-align: center; line-height: 1.5; letter-spacing: 0.5px;
+}
+.footer-right { display: flex; justify-content: flex-end; align-items: center; width: 250px; position: relative; }
+.footer-icon {
+    font-size: 20px; font-weight: 600; color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%; width: 45px; height: 45px; display: flex;
+    justify-content: center; align-items: center; transition: all 0.2s ease; cursor: help; z-index: 2;
+}
+
+.author-tooltip {
+    visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 15px); right: 0;
+    background: rgba(30, 35, 40, 0.85); backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 15px 22px;
+    border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1.5;
+    white-space: nowrap; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(10px) scale(0.95); transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100; pointer-events: none;
+}
+.author-tooltip::after {
+    content: ""; position: absolute; top: 100%; right: 16px; border-width: 8px;
+    border-style: solid; border-color: rgba(255, 255, 255, 0.2) transparent transparent transparent;
+}
+.author-info-wrapper:hover .author-tooltip { visibility: visible; opacity: 1; transform: translateY(0) scale(1); }
+/* ==========================================================================
+   УНИКАЛЬНЫЕ СТИЛИ ТОЛЬКО ДЛЯ ГЛАВНОЙ СТРАНИЦЫ (INDEX.HTML)
+   ========================================================================== */
+
+.fullscreen-bg.home-bg {
+    /* Оставляем здесь только цвет, чтобы по краям при масштабировании был темный фон */
+    background-color: #0e1218;
+}
+
+.fullscreen-bg.home-bg .workspace {
+    /* Переносим картинку сюда, теперь она зафиксирована в рамках 1920x1080 */
+    background-image: linear-gradient(rgba(20, 25, 35, 0.4), rgba(20, 25, 35, 0.6)), url('bg.jpg');
+    background-size: cover; /* или 100% 100%, так как размер четко 1920x1080 */
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: none;
+    border-radius: 0;
+}
+/* ГЛАВНЫЙ КОНТЕЙНЕР (Теперь занимает почти весь холст 1920x1080!) */
+.home-interface {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1500px; /* Сетка раскинута на 1500 пикселей */
+    height: 800px; 
+}
+
+/* Обертка для плашки + круга */
+.home-center-wrapper {
+    position: absolute;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
@@ -59,26 +372,28 @@ body .fullscreen-bg.practice-bg {
     z-index: 10;
 }
 
-.lab-badge {
+/* Плашка над кругом */
+.home-badge {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border-radius: 30px;
-    padding: 8px 20px;
+    border-radius: 40px;
+    padding: 14px 30px;
     color: rgba(255, 255, 255, 0.95);
-    font-size: 13px;
+    font-size: 18px; /* Увеличен шрифт */
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: -20px;
+    margin-bottom: -28px; /* Смещение, чтобы идеально лечь на 600px круг */
     z-index: 20;
 }
 
-.center-circle {
+/* ОГРОМНЫЙ центральный круг */
+.home-circle {
     position: relative;
-    width: 380px;
-    height: 380px;
+    width: 600px;  /* УВЕЛИЧЕН */
+    height: 600px; /* УВЕЛИЧЕН */
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
@@ -91,37 +406,32 @@ body .fullscreen-bg.practice-bg {
     text-align: center;
 }
 
-.main-title {
-    position: relative;
-    z-index: 5;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.title-top {
-    font-size: 13px;
+.home-title-top {
+    display: block;
+    font-size: 18px; /* Увеличен */
     font-weight: 500;
     color: rgba(255, 255, 255, 0.8);
-    letter-spacing: 4px;
+    letter-spacing: 6px;
     text-transform: uppercase;
+    margin-bottom: 15px;
 }
 
-.title-bot {
-    font-size: 46px;
+.home-title-bot {
+    display: block;
+    font-size: 72px; /* ОГРОМНЫЙ ШРИФТ */
     font-weight: 800;
     color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 5px;
     line-height: 1.1;
     text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.nav-btn {
+/* ОГРОМНЫЕ Кнопки навигации */
+.home-btn {
     position: absolute;
-    width: 220px;
-    height: 60px;
+    width: 340px; /* Шире */
+    height: 85px; /* Выше */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -131,561 +441,24 @@ body .fullscreen-bg.practice-bg {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     color: #ffffff;
     font-weight: 600;
-    border-radius: 30px;
-    font-size: 14px;
+    border-radius: 45px;
+    font-size: 18px; /* Крупнее текст */
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     text-decoration: none;
     transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    z-index: 5;
 }
 
-.nav-btn:hover {
+.home-btn:hover {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     transform: scale(1.02);
 }
 
-.top-left {
-    top: 18%;
-    left: 0;
-}
-
-.top-right {
-    top: 18%;
-    right: 0;
-}
-
-.bottom-left {
-    bottom: 18%;
-    left: 0;
-}
-
-.bottom-right {
-    bottom: 18%;
-    right: 0;
-}
-
-.site-footer {
-    background: rgba(25, 30, 35, 0.4);
-    backdrop-filter: blur(15px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 60px;
-    padding: 0 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 20;
-}
-
-.footer-left {
-    display: flex;
-    align-items: center;
-    width: 200px;
-}
-
-.footer-logo {
-    height: 40px;
-    width: auto;
-    opacity: 0.9;
-}
-
-.footer-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 13px;
-    font-weight: 400;
-    text-align: center;
-    line-height: 1.5;
-    letter-spacing: 0.5px;
-}
-
-.footer-right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    width: 200px;
-    position: relative;
-}
-
-.footer-icon {
-    font-size: 16px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
-    cursor: help;
-    z-index: 2;
-}
-
-.footer-icon:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-.author-tooltip {
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-    bottom: calc(100% + 15px);
-    right: 0;
-    background: rgba(30, 35, 40, 0.85);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.5;
-    white-space: nowrap;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    transform: translateY(10px) scale(0.95);
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    z-index: 100;
-    pointer-events: none;
-}
-
-.author-tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    right: 9px;
-    border-width: 6px;
-    border-style: solid;
-    border-color: rgba(255, 255, 255, 0.2) transparent transparent transparent;
-}
-
-.author-info-wrapper:hover .author-tooltip {
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0) scale(1);
-}
-
-.glass-panel {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    color: white;
-    z-index: 5;
-}
-
-.action-btn {
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    color: white;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    transition: transform 0.3s ease, background 0.3s ease;
-}
-
-.action-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.02);
-}
-
-.action-btn.active {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-.top-buttons-container {
-    position: absolute;
-    top: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 20px;
-    z-index: 5;
-}
-
-.top-buttons-container .action-btn {
-    width: 230px;
-}
-
-.back-btn,
-.hint-btn {
-    position: absolute;
-    top: 40px;
-    width: 55px;
-    padding: 0;
-    z-index: 10;
-    border-radius: 10px;
-}
-
-.back-btn {
-    left: 40px;
-}
-
-.hint-btn {
-    right: 40px;
-    font-size: 22px;
-}
-
-.floating-panel {
-    position: absolute;
-    width: 270px;
-    padding: 20px;
-    z-index: 5;
-}
-
-.panel-lenses {
-    top: 115px;
-    left: 40px;
-}
-
-.panel-filters {
-    top: 235px;
-    left: 40px;
-}
-
-.hint-panel {
-    top: 115px;
-    right: 40px;
-    z-index: 10;
-}
-
-.fade-panel {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
-    transform: scale(0.95);
-}
-
-.fade-panel.visible {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: scale(1);
-}
-
-.control-label {
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #ffffff;
-    margin-bottom: 15px;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.radio-options {
-    display: flex;
-    gap: 12px;
-}
-
-.radio-btn {
-    flex: 1;
-    position: relative;
-    cursor: pointer;
-}
-
-.radio-btn input {
-    display: none;
-}
-
-.radio-btn span {
-    display: block;
-    text-align: center;
-    padding: 10px 0;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-.radio-btn input:checked + span {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-.filter-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.filter-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 10px 15px 10px 35px;
-    color: #fff;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    text-align: left;
-    cursor: pointer;
-    transition: 0.3s;
-    position: relative;
-}
-
-.filter-btn::before {
-    content: '';
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.filter-btn.red::before {
-    background: #ff4d4d;
-}
-
-.filter-btn.yellow::before {
-    background: #ffd700;
-}
-
-.filter-btn.green::before {
-    background: #00cc44;
-}
-
-.filter-btn.blue::before {
-    background: #3385ff;
-}
-
-.filter-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-.filter-btn.active {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.hint-img {
-    width: 100%;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 15px;
-    background: #fff;
-}
-
-.hint-text p {
-    font-size: 13.5px;
-    margin-bottom: 10px;
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.4;
-}
-
-.hint-formula {
-    font-size: 15px;
-    font-weight: 700;
-    text-align: center;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-    margin-top: 10px;
-}
-
-.focus-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(10, 15, 20, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 1;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: 0.4s ease;
-}
-
-.focus-overlay.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.panel-eyepiece {
-    position: absolute;
-    top: 12%;
-    right: 5%;
-    z-index: 5;
-}
-
-.eyepiece-container {
-    width: 380px;
-    height: 380px;
-    border-radius: 50%;
-    position: relative;
-    overflow: hidden;
-    background: #000;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-}
-
-.rings-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    transform: scale(0.65);
-}
-
-.lens-glass {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.7) 68%);
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.1);
-    z-index: 4;
-    pointer-events: none;
-}
-
-.eyepiece-frame {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 5;
-    pointer-events: none;
-}
-
-.ruler-container {
-    position: absolute;
-    top: 50%;
-    left: 10%;
-    width: 80%;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.4);
-    z-index: 2;
-}
-
-.ruler-marks {
-    position: absolute;
-    top: -8px;
-    left: 0;
-    width: 100%;
-    height: 17px;
-    background: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0.9) 2px, transparent 2px, transparent 10%);
-}
-
-.ruler-marks::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 0;
-    width: 100%;
-    height: 9px;
-    background: repeating-linear-gradient(to right, rgba(255, 255, 255, 0.4) 0, rgba(255, 255, 255, 0.4) 1px, transparent 1px, transparent 1%);
-}
-
-.crosshair {
-    position: absolute;
-    top: 0;
-    width: 2px;
-    height: 100%;
-    background: rgba(255, 50, 50, 0.9);
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
-    z-index: 3;
-    transform: translateX(-50%);
-}
-
-.panel-micrometer {
-    position: absolute;
-    top: calc(12% + 400px);
-    right: calc(5% + 50px);
-    width: 280px;
-    padding: 15px 25px;
-    z-index: 5;
-}
-
-.micrometer-value-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 5px;
-    margin-top: 10px;
-}
-
-.value-input {
-    width: 85px;
-    text-align: right;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #fff;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    -moz-appearance: textfield;
-}
-
-.value-input::-webkit-outer-spin-button,
-.value-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.unit {
-    color: #fff;
-    font-size: 20px;
-    font-weight: 700;
-    margin-left: 5px;
-}
-
-.custom-slider {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    outline: none;
-    margin-top: 5px;
-}
-
-.custom-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #ffffff;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-}
+/* Идеальные координаты для этой сетки */
+.pos-tl { top: 18%; left: 0; }
+.pos-tr { top: 18%; right: 0; }
+.pos-bl { bottom: 18%; left: 0; }
+.pos-br { bottom: 18%; right: 0; }

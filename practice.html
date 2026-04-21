@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Виконання - Кільця Ньютона</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <main class="fullscreen-bg practice-bg microscope-bg">
+  <!-- Залишили тільки practice-bg -->
+  <main class="fullscreen-bg practice-bg">
     <div class="workspace">
       <div class="focus-overlay" id="focusOverlay"></div>
 
@@ -29,11 +29,11 @@
         <div class="control-label">Вибрати лінзу</div>
         <div class="radio-options">
           <label class="radio-btn">
-            <input type="radio" name="lens" value="1" checked />
+            <input type="radio" name="lens" value="1" checked>
             <span>Лінза 1</span>
           </label>
           <label class="radio-btn">
-            <input type="radio" name="lens" value="2" />
+            <input type="radio" name="lens" value="2">
             <span>Лінза 2</span>
           </label>
         </div>
@@ -51,7 +51,7 @@
 
       <div class="glass-panel floating-panel hint-panel fade-panel" id="hintPanel">
         <div class="control-label text-center">Алгоритм роботи</div>
-        <img src="diagram.jpg" alt="Схема Ньютона" class="hint-img" />
+        <img src="diagram.jpg" alt="Схема Ньютона" class="hint-img">
         <div class="hint-text">
           <p><b>1.</b> Встановіть червоний фільтр. Знайдіть центр кілець <b>n<sub>0</sub></b> (~5.00 мм).</p>
           <p><b>2.</b> Наведіть лінію на середину 3-го темного кільця. Це <b>n<sub>зч</sub></b>.</p>
@@ -63,24 +63,21 @@
 
       <div class="panel-eyepiece fade-panel" id="eyepiecePanel">
         <div class="eyepiece-container">
-          <img src="red.png" alt="Кільця Ньютона" class="rings-image" id="ringsView" />
-
+          <img src="red.png" alt="Кільця Ньютона" class="rings-image" id="ringsView">
           <div class="ruler-container">
             <div class="ruler-marks"></div>
           </div>
-
           <div class="crosshair"></div>
           <div class="lens-glass"></div>
-          <img src="ring.png" alt="Окуляр рамка" class="eyepiece-frame" />
+          <img src="ring.png" alt="Окуляр рамка" class="eyepiece-frame">
         </div>
       </div>
 
       <div class="glass-panel floating-panel panel-micrometer fade-panel" id="micrometerPanel">
         <div class="control-label text-center">Окуляр-мікрометр</div>
-        <input type="range" class="custom-slider" min="0" max="10" step="0.01" value="5.00" id="micrometerSlider" />
-
+        <input type="range" class="custom-slider" min="0" max="10" step="0.01" value="5.00" id="micrometerSlider">
         <div class="micrometer-value-container">
-          <input type="number" id="sliderValueInput" class="value-input" min="0" max="10" step="0.01" value="5.00" />
+          <input type="number" id="sliderValueInput" class="value-input" min="0" max="10" step="0.01" value="5.00">
           <span class="unit">мм</span>
         </div>
       </div>

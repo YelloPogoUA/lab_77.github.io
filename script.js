@@ -1,17 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const preloadImages = () => {
-        const images =[
-            'red.png', 'yellow.png', 'green.png', 'blue.png',
-            'red1.png', 'yellow1.png', 'green1.png', 'blue1.png'
-        ];
-        images.forEach(src => {
-            const img = new Image();
-            img.src = src;
+    // Единая логика масштабирования 16:9 для всех страниц
+    const resizeWorkspace = () => {
+        const workspaces = document.querySelectorAll('.workspace');
+        if (!workspaces.length) return;
+        
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        // Строгий масштаб 1920x1080 (без деформаций)
+        const scale = Math.min(vw / 1920, vh / 1080);
+        
+        workspaces.forEach(ws => {
+            ws.style.transform = `scale(${scale})`;
         });
     };
-    
+
+    resizeWorkspace();
+    window.addEventListener('resize', resizeWorkspace);
+
+    // Предзагрузка картинок колец для плавной смены
+    const preloadImages = () => {['red.png', 'yellow.png', 'green.png', 'blue.png', 'red1.png', 'yellow1.png', 'green1.png', 'blue1.png'].forEach(src => {
+            new Image().src = src;
+        });
+    };
     preloadImages();
 
+    // UI элементы
     const UI = {
         btns: {
             toggleEyepiece: document.getElementById('toggleEyepieceBtn'),
@@ -45,15 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
         lens: '1',
         color: 'red',
         isDeviceOn: false,
-        baseScale: 0.45
+        baseScale: 0.65
     };
 
+    // Обновление картинки колец
     const updateImageSource = () => {
         if (!UI.visuals.ringsImage) return;
         const suffix = state.lens === '2' ? '1.png' : '.png';
         UI.visuals.ringsImage.src = state.color + suffix;
     };
 
+    // Обновление размера колец в зависимости от физики
     const updatePhysicsModel = () => {
         const img = UI.visuals.ringsImage;
         if (!img) return;
@@ -64,18 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const lambda = CONSTANTS.WAVELENGTHS[state.color];
-        const R = CONSTANTS.LENSES[state.lens];
-
-        const relativeScale = Math.sqrt(
-            (lambda / CONSTANTS.WAVELENGTHS.red) * (R / CONSTANTS.LENSES['1'])
-        );
+        const relativeScale = Math.sqrt(lambda / CONSTANTS.WAVELENGTHS.red);
         const finalScale = state.baseScale * relativeScale;
 
         img.style.transform = `scale(${finalScale})`;
         img.style.opacity = '1';
-        img.style.transition = 'transform 0.5s ease-out, opacity 0.3s ease';
+        img.style.transition = 'transform 0.5s ease-out, opacity 0.3s ease, filter 0.3s ease';
     };
 
+    // Кнопка включения установки
     if (UI.btns.toggleDevice) {
         UI.btns.toggleDevice.addEventListener('click', function () {
             state.isDeviceOn = !state.isDeviceOn;
@@ -85,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Кнопка окуляра
     if (UI.btns.toggleEyepiece) {
         UI.btns.toggleEyepiece.addEventListener('click', function () {
             this.classList.toggle('active');
@@ -92,32 +105,50 @@ document.addEventListener('DOMContentLoaded', () => {
             UI.panels.micrometer?.classList.toggle('visible');
             UI.visuals.focusOverlay?.classList.toggle('visible');
 
+            // Закрываем подсказку, если открыта
             if (this.classList.contains('active') && UI.btns.hint?.classList.contains('active')) {
                 UI.btns.hint.click();
             }
         });
     }
 
+    // Кнопка подсказки (алгоритм)
     if (UI.btns.hint && UI.panels.hint) {
         UI.btns.hint.addEventListener('click', function (e) {
             e.preventDefault();
             this.classList.toggle('active');
             UI.panels.hint.classList.toggle('visible');
 
+            // Закрываем окуляр, если открыт
             if (this.classList.contains('active') && UI.btns.toggleEyepiece?.classList.contains('active')) {
                 UI.btns.toggleEyepiece.click();
             }
         });
     }
 
+    // Смена линзы
     UI.inputs.lenses.forEach(radio => {
         radio.addEventListener('change', function () {
             state.lens = this.value;
-            updateImageSource();
-            updatePhysicsModel();
+            const img = UI.visuals.ringsImage;
+            
+            if (img && state.isDeviceOn) {
+                img.style.opacity = '0';
+                img.style.filter = 'blur(5px)';
+                
+                setTimeout(() => {
+                    updateImageSource();  
+                    updatePhysicsModel();  
+                    img.style.filter = 'blur(0px)';
+                }, 300);
+            } else {
+                updateImageSource();
+                updatePhysicsModel();
+            }
         });
     });
 
+    // Смена светофильтра
     if (UI.inputs.filters.length && UI.visuals.ringsImage) {
         UI.inputs.filters.forEach(btn => {
             btn.addEventListener('click', function () {
@@ -130,11 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Логика микрометра (перекрестие)
     const updateCrosshair = (value) => {
         const ch = UI.visuals.crosshair;
         if (!UI.inputs.slider || !ch) return;
 
         const val = Math.max(0, Math.min(10, parseFloat(value) || 0));
+        // 10% - 90% для центрирования на линейке
         const percentage = 10 + (val / UI.inputs.slider.max) * 80;
         ch.style.left = `${percentage}%`;
     };
@@ -161,8 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
             UI.inputs.slider.value = val;
             updateCrosshair(val);
         });
+        
+        // Инициализация стартовой позиции
+        updateCrosshair(UI.inputs.slider.value);
     }
 
+    // Начальный запуск
     updateImageSource();
     updatePhysicsModel();
 });
