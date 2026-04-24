@@ -1,4 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const preloader = document.getElementById('pagePreloader');
+    const loadingText = document.getElementById('loadingText');
+
+    if (preloader) {
+        const imagesToLoad = [
+            'bg.jpg', 'setup.jpg', 'red.png', 'yellow.png', 
+            'green.png', 'blue.png', 'red1.png', 'yellow1.png', 
+            'green1.png', 'blue1.png', 'ring.png', 'lens_macro.png'
+        ];
+
+        let loadedImagesCount = 0;
+
+        const imageLoaded = () => {
+            loadedImagesCount++;
+            const percent = Math.floor((loadedImagesCount / imagesToLoad.length) * 100);
+            if (loadingText) loadingText.textContent = `Завантаження ${percent}%`;
+
+            if (loadedImagesCount === imagesToLoad.length) {
+                setTimeout(() => {
+                    preloader.classList.add('hidden');
+                }, 500);
+            }
+        };
+
+        imagesToLoad.forEach(src => {
+            const img = new Image();
+            img.onload = imageLoaded;
+            img.onerror = imageLoaded;
+            img.src = src;
+        });
+    }
+
     const resizeWorkspace = () => {
         const workspaces = document.querySelectorAll('.workspace');
         if (!workspaces.length) return;
@@ -15,13 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeWorkspace();
     window.addEventListener('resize', resizeWorkspace);
 
-    const preloadImages = () => {['red.png', 'yellow.png', 'green.png', 'blue.png', 'red1.png', 'yellow1.png', 'green1.png', 'blue1.png'].forEach(src => {
-            new Image().src = src;
-        });
-    };
-    preloadImages();
-
-const UI = {
+    const UI = {
         btns: {
             toggleEyepiece: document.getElementById('toggleEyepieceBtn'),
             toggleDevice: document.getElementById('toggleDeviceBtn'),
@@ -204,6 +230,7 @@ const UI = {
             }
         });
     }
+
     if (UI.btns.hotspot && UI.panels.lensModal) {
         UI.btns.hotspot.addEventListener('click', () => {
             UI.panels.lensModal.classList.add('visible');
@@ -213,6 +240,7 @@ const UI = {
             UI.panels.lensModal.classList.remove('visible');
         });
     }
+
     updateImageSource();
     updatePhysicsModel();
 });

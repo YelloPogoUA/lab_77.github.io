@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="pagePreloader" class="page-preloader">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Завантаження 0%</div>
+  </div>
+
   <main class="fullscreen-bg practice-bg">
     <div class="workspace">
       <div class="focus-overlay" id="focusOverlay"></div>
@@ -73,11 +78,13 @@
           <span class="unit">мм</span>
         </div>
       </div>
+      
       <div id="lensHotspot" class="hotspot" data-title="Розглянути прилад Ньютона"></div>
       
       <div id="lensModal" class="lens-modal">
         <img src="lens_macro.png" alt="Об'єктив зблизька">
       </div>
+    </div>
   </main>
 
   <script src="script.js"></script>
