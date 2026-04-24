@@ -1,12 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Единая логика масштабирования 16:9 для всех страниц
     const resizeWorkspace = () => {
         const workspaces = document.querySelectorAll('.workspace');
         if (!workspaces.length) return;
         
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        // Строгий масштаб 1920x1080 (без деформаций)
         const scale = Math.min(vw / 1920, vh / 1080);
         
         workspaces.forEach(ws => {
@@ -17,24 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeWorkspace();
     window.addEventListener('resize', resizeWorkspace);
 
-    // Предзагрузка картинок колец для плавной смены
     const preloadImages = () => {['red.png', 'yellow.png', 'green.png', 'blue.png', 'red1.png', 'yellow1.png', 'green1.png', 'blue1.png'].forEach(src => {
             new Image().src = src;
         });
     };
     preloadImages();
 
-    // UI элементы
-    const UI = {
+const UI = {
         btns: {
             toggleEyepiece: document.getElementById('toggleEyepieceBtn'),
             toggleDevice: document.getElementById('toggleDeviceBtn'),
-            hint: document.getElementById('hintBtn')
+            hint: document.getElementById('hintBtn'),
+            hotspot: document.getElementById('lensHotspot') 
         },
         panels: {
             eyepiece: document.getElementById('eyepiecePanel'),
             micrometer: document.getElementById('micrometerPanel'),
-            hint: document.getElementById('hintPanel')
+            hint: document.getElementById('hintPanel'),
+            lensModal: document.getElementById('lensModal') 
         },
         visuals: {
             focusOverlay: document.getElementById('focusOverlay'),
@@ -61,14 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
         baseScale: 0.65
     };
 
-    // Обновление картинки колец
     const updateImageSource = () => {
         if (!UI.visuals.ringsImage) return;
         const suffix = state.lens === '2' ? '1.png' : '.png';
         UI.visuals.ringsImage.src = state.color + suffix;
     };
 
-    // Обновление размера колец в зависимости от физики
     const updatePhysicsModel = () => {
         const img = UI.visuals.ringsImage;
         if (!img) return;
@@ -87,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
         img.style.transition = 'transform 0.5s ease-out, opacity 0.3s ease, filter 0.3s ease';
     };
 
-    // Кнопка включения установки
     if (UI.btns.toggleDevice) {
         UI.btns.toggleDevice.addEventListener('click', function () {
             state.isDeviceOn = !state.isDeviceOn;
@@ -97,36 +92,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Кнопка окуляра
     if (UI.btns.toggleEyepiece) {
         UI.btns.toggleEyepiece.addEventListener('click', function () {
             this.classList.toggle('active');
+            const isActive = this.classList.contains('active');
+            
+            this.textContent = isActive ? 'Прибрати окуляр' : 'Подивитися в окуляр';
+
             UI.panels.eyepiece?.classList.toggle('visible');
             UI.panels.micrometer?.classList.toggle('visible');
             UI.visuals.focusOverlay?.classList.toggle('visible');
 
-            // Закрываем подсказку, если открыта
-            if (this.classList.contains('active') && UI.btns.hint?.classList.contains('active')) {
+            if (isActive && UI.btns.hint?.classList.contains('active')) {
                 UI.btns.hint.click();
             }
         });
     }
 
-    // Кнопка подсказки (алгоритм)
     if (UI.btns.hint && UI.panels.hint) {
         UI.btns.hint.addEventListener('click', function (e) {
             e.preventDefault();
             this.classList.toggle('active');
             UI.panels.hint.classList.toggle('visible');
 
-            // Закрываем окуляр, если открыт
             if (this.classList.contains('active') && UI.btns.toggleEyepiece?.classList.contains('active')) {
                 UI.btns.toggleEyepiece.click();
             }
         });
     }
 
-    // Смена линзы
     UI.inputs.lenses.forEach(radio => {
         radio.addEventListener('change', function () {
             state.lens = this.value;
@@ -148,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Смена светофильтра
     if (UI.inputs.filters.length && UI.visuals.ringsImage) {
         UI.inputs.filters.forEach(btn => {
             btn.addEventListener('click', function () {
@@ -161,13 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Логика микрометра (перекрестие)
     const updateCrosshair = (value) => {
         const ch = UI.visuals.crosshair;
         if (!UI.inputs.slider || !ch) return;
 
         const val = Math.max(0, Math.min(10, parseFloat(value) || 0));
-        // 10% - 90% для центрирования на линейке
         const percentage = 10 + (val / UI.inputs.slider.max) * 80;
         ch.style.left = `${percentage}%`;
     };
@@ -195,11 +186,33 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCrosshair(val);
         });
         
-        // Инициализация стартовой позиции
         updateCrosshair(UI.inputs.slider.value);
     }
 
-    // Начальный запуск
+    const authorBtn = document.getElementById('authorBtn');
+    const authorTooltip = document.getElementById('authorTooltip');
+
+    if (authorBtn && authorTooltip) {
+        authorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            authorTooltip.classList.toggle('visible');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!authorTooltip.contains(e.target) && e.target !== authorBtn) {
+                authorTooltip.classList.remove('visible');
+            }
+        });
+    }
+    if (UI.btns.hotspot && UI.panels.lensModal) {
+        UI.btns.hotspot.addEventListener('click', () => {
+            UI.panels.lensModal.classList.add('visible');
+        });
+
+        UI.panels.lensModal.addEventListener('click', () => {
+            UI.panels.lensModal.classList.remove('visible');
+        });
+    }
     updateImageSource();
     updatePhysicsModel();
 });

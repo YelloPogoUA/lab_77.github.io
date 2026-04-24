@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Залишили тільки practice-bg -->
   <main class="fullscreen-bg practice-bg">
     <div class="workspace">
       <div class="focus-overlay" id="focusOverlay"></div>
@@ -50,15 +49,8 @@
       </div>
 
       <div class="glass-panel floating-panel hint-panel fade-panel" id="hintPanel">
-        <div class="control-label text-center">Алгоритм роботи</div>
-        <img src="diagram.jpg" alt="Схема Ньютона" class="hint-img">
-        <div class="hint-text">
-          <p><b>1.</b> Встановіть червоний фільтр. Знайдіть центр кілець <b>n<sub>0</sub></b> (~5.00 мм).</p>
-          <p><b>2.</b> Наведіть лінію на середину 3-го темного кільця. Це <b>n<sub>зч</sub></b>.</p>
-          <p><b>3.</b> Обчисліть радіус: <b>r = |n<sub>0</sub> - n<sub>зч</sub>|</b>.</p>
-          <p><b>4.</b> Для іншого фільтра знайдіть <b>r<sub>x</sub></b> та обчисліть довжину хвилі:</p>
-          <div class="hint-formula">λ<sub>x</sub> = 700 · (r<sub>x</sub>² / r<sub>черв</sub>²)</div>
-        </div>
+        <div class="control-label text-center">ДОВЖИНИ ХВИЛЬ</div>
+        <img src="diagram.jpg" alt="Схема Ньютона" class="hint-img" style="margin-bottom: 0;">
       </div>
 
       <div class="panel-eyepiece fade-panel" id="eyepiecePanel">
@@ -81,7 +73,11 @@
           <span class="unit">мм</span>
         </div>
       </div>
-    </div>
+      <div id="lensHotspot" class="hotspot" data-title="Розглянути лінзу"></div>
+      
+      <div id="lensModal" class="lens-modal">
+        <img src="lens_macro.png" alt="Об'єктив зблизька">
+      </div>
   </main>
 
   <script src="script.js"></script>
